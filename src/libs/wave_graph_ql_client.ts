@@ -4,7 +4,6 @@ import { Buffer } from "buffer";
 function encodeWaveToken(token: string): string {
   const formattedHeader = `:${token}`;
   const encodedToken = Buffer.from(formattedHeader, "utf8").toString("base64");
-  console.log("Token encoded: ", `Basic ${encodedToken}`);
 
   return `Basic ${encodedToken}`;
 }
