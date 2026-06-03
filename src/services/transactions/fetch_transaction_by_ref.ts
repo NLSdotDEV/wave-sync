@@ -2,7 +2,7 @@ import { waveGraphQlClient } from "../../libs/wave_graph_ql_client.js";
 import { GetMerchantTransactionsQuery } from "../../shared/graphQlQueries/get_merchant_transactions_query.js";
 import { waveDateParser } from "../../libs/wave_date_parser.js";
 import type { WaveHistoryEntry } from "../../shared/types/wave_history_entry.js";
-import type { WaveSyncTransaction } from "../../shared/types/wave_sync_transactions.js";
+import type { WaveSyncTransaction } from "../../shared/types/wave_sync_transaction.js";
 import { waveAmountParser } from "../../libs/wave_amount_parser.js";
 
 interface TransactionResponse {
@@ -40,7 +40,7 @@ export async function fetchTransactionByRef(
         historyEntry.__typename === "MerchantSaleEntry" &&
         historyEntry.clientReference === clientReference
       );
-    }
+    },
   );
 
   if (!matchingHistoryEntry) {

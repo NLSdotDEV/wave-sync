@@ -3,7 +3,7 @@ import { waveAmountParser } from "../../libs/wave_amount_parser.js";
 import { GetMerchantTransactionsQuery } from "../../shared/graphQlQueries/get_merchant_transactions_query.js";
 import { waveDateParser } from "../../libs/wave_date_parser.js";
 import { type WaveHistoryEntry } from "../../shared/types/wave_history_entry.js";
-import { type WaveSyncTransaction } from "../../shared/types/wave_sync_transactions.js";
+import { type WaveSyncTransaction } from "../../shared/types/wave_sync_transaction.js";
 
 interface TransactionReponse {
   transactionCount: number;
@@ -12,7 +12,7 @@ interface TransactionReponse {
 
 export async function fetchAllTransactions(
   token: string,
-  walletOpaqueId: string
+  walletOpaqueId: string,
 ): Promise<TransactionReponse> {
   const today = new Date();
   const strDate = waveDateParser(today.toDateString());
