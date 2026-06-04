@@ -1,14 +1,17 @@
 export class AppError extends Error {
   public readonly statusCode: number;
+  public readonly errorCode: string;
   public readonly payload?: Record<any, any> | null | undefined;
 
   constructor(
     message: string,
     statusCode: number = 500,
+    errorCode: string,
     payload?: Record<any, any> | null,
   ) {
     super(message);
     this.statusCode = statusCode;
+    this.errorCode = errorCode;
     this.payload = payload;
   }
 }
@@ -18,7 +21,7 @@ export class BadRequestError extends AppError {
     message: string = "Bad Request",
     payload?: Record<any, any> | null,
   ) {
-    super(message, 400, payload);
+    super(message, 400, 'BAD_REQUEST', payload);
   }
 }
 
@@ -27,7 +30,7 @@ export class UnauthorizedError extends AppError {
     message: string = "Unauthorized",
     payload?: Record<any, any> | null,
   ) {
-    super(message, 401, payload);
+    super(message, 401, 'UNAUTHORIZED', payload);
   }
 }
 
@@ -36,7 +39,7 @@ export class ForbiddenError extends AppError {
     message: string = "Forbidden",
     payload?: Record<any, any> | null,
   ) {
-    super(message, 403, payload);
+    super(message, 403, 'FORBIDDEN', payload);
   }
 }
 
@@ -45,7 +48,7 @@ export class NotFoundError extends AppError {
     message: string = "Resource Not Found",
     payload?: Record<any, any> | null,
   ) {
-    super(message, 404, payload);
+    super(message, 404, 'NOT_FOUND', payload);
   }
 }
 
@@ -54,6 +57,6 @@ export class InternalServerError extends AppError {
     message: string = "Internal Server Error",
     payload?: Record<any, any> | null,
   ) {
-    super(message, 500, payload);
+    super(message, 500, 'INTERNAL_SERVER_ERROR', payload);
   }
 }
