@@ -1,61 +1,74 @@
-import { waveGraphQlClient } from "../../libs/wave_graph_ql_client.js";
-import { waveAmountParser } from "../../libs/wave_amount_parser.js";
+import { WaveGraphQlClient } from "../../libs/wave_graph_ql_client.js";
 import { GetMerchantTransactionsQuery } from "../../shared/graphQlQueries/get_merchant_transactions_query.js";
-import { waveDateParser } from "../../libs/wave_date_parser.js";
 import { type WaveHistoryEntry } from "../../shared/types/wave_history_entry.js";
 import { type WaveSyncTransaction } from "../../shared/types/wave_sync_transaction.js";
+import { WaveParser } from "../../libs/wave_parser.js";
 
 interface TransactionReponse {
-  transactionCount: number;
+  total: number;
   transactions: WaveSyncTransaction[] | WaveSyncTransaction;
 }
 
-export async function fetchAllTransactions(
-  token: string,
-  walletOpaqueId: string,
-): Promise<TransactionReponse> {
-  const today = new Date();
-  const strDate = waveDateParser(today.toDateString());
+export class FetchAllTransactionService {
+  private waveParser: WaveParser;
+  private waveGraphQlClient: WaveGraphQlClient;
 
-  const payload = {
-    query: GetMerchantTransactionsQuery,
-    variables: {
-      start: strDate,
-      end: strDate,
-      walletOpaqueId,
-      limit: 1000,
-    },
-  };
-  const graphQlResponse = await waveGraphQlClient(token, payload);
+  constructor() {
+    this.waveParser = new WaveParser();
+    this.waveGraphQlClient = new WaveGraphQlClient();
+  }
 
-  const historyEntries =
-    graphQlResponse?.data?.me?.businessUser?.business?.walletHistory
-      ?.historyEntries;
+  async get(
+    token: string,
+    walletOpaqueId: string,
+  ): Promise<TransactionReponse> {
+    const today = new Date();
+    const date = this.waveParser.parseDate(today.toDateString());
 
-  const transactions: WaveSyncTransaction[] = historyEntries
-    .filter((entry: WaveHistoryEntry) => {
-      return entry.__typename === "MerchantSaleEntry";
-    })
-    .map((entry: WaveHistoryEntry) => {
-      return {
-        id: entry.id,
-        transferId: entry.transferId,
-        paidAt: entry.whenEntered,
-        isPending: entry.isPending,
-        isCancelled: entry.isCancelled,
-        source: entry.actionSource,
-        fees: waveAmountParser(entry.feeAmount),
-        amount: waveAmountParser(entry.grossAmount),
-        clientReference: entry.clientReference,
-        customerMobile: entry.customerMobile,
-        customerName: entry.customerName,
-      };
-    });
+    const payload = {
+      query: GetMerchantTransactionsQuery,
+      variables: {
+        start: date,
+        end: date,
+        walletOpaqueId,
+        limit: 1000,
+      },
+    };
 
-  const transactionCount = transactions.length;
+    const graphQlResponse = await this.waveGraphQlClient.request(
+      token,
+      payload,
+    );
 
-  return {
-    transactionCount,
-    transactions,
-  };
+    const historyEntries =
+      graphQlResponse?.data?.me?.businessUser?.business?.walletHistory
+        ?.historyEntries;
+
+    const transactions: WaveSyncTransaction[] = historyEntries
+      .filter((entry: WaveHistoryEntry) => {
+        return entry.__typename === "MerchantSaleEntry";
+      })
+      .map((entry: WaveHistoryEntry) => {
+        return {
+          id: entry.id,
+          transferId: entry.transferId,
+          paidAt: entry.whenEntered,
+          isPending: entry.isPending,
+          isCancelled: entry.isCancelled,
+          source: entry.actionSource,
+          fees: this.waveParser.parseAmount(entry.feeAmount),
+          amount: this.waveParser.parseAmount(entry.grossAmount),
+          clientReference: entry.clientReference,
+          customerMobile: entry.customerMobile,
+          customerName: entry.customerName,
+        };
+      });
+
+    const transactionCount = transactions.length;
+
+    return {
+      transactions,
+      total: transactionCount,
+    };
+  }
 }
