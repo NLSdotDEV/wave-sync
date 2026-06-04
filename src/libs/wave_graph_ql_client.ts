@@ -1,9 +1,13 @@
 import { waveConfig } from "../configs/wave.js";
 import { Buffer } from "buffer";
+import {
+  BadRequestError,
+  ForbiddenError,
+} from "../shared/exceptions/app_error.js";
 
 interface GraphQlResponse {
   data?: any | null;
-  errors?: unknown | null;
+  errors?: any | null;
 }
 export class WaveGraphQlClient {
   async request(
@@ -29,11 +33,22 @@ export class WaveGraphQlClient {
     const response: GraphQlResponse = await request.json();
 
     if (!response.data || response.data == null) {
-      throw new Error("Data not found in request " + JSON.stringify(response));
+      throw new BadRequestError("Data not found in request ", response);
     }
 
     if (response.errors) {
-      throw new Error("error occured during request");
+      const error = response?.errors?.[0];
+      const message = error?.message;
+      const errorCode = error?.code;
+
+      if (
+        typeof errorCode === "string" &&
+        errorCode.toLowerCase() === "no-user"
+      ) {
+        throw new ForbiddenError(message);
+      }
+
+      throw new BadRequestError(message, response.errors);
     }
 
     return response;

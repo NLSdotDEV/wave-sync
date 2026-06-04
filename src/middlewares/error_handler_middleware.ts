@@ -6,10 +6,12 @@ export class ErrorHandlerMiddleware extends Middleware {
   static handle(err: any, _req: Request, res: Response, _next: NextFunction) {
     let statusCode = 500;
     let message = "Internal Server Error";
+    let payload = null;
 
     if (err instanceof AppError) {
       statusCode = err.statusCode;
       message = err.message;
+      payload = err.payload
     } else if (err instanceof Error) {
       const isDevelopment = process.env.NODE_ENV !== "production";
       if (isDevelopment) {
@@ -20,6 +22,7 @@ export class ErrorHandlerMiddleware extends Middleware {
     return res.status(statusCode).json({
       success: false,
       message,
+      payload
     });
   }
 }
